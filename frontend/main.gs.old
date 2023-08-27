@@ -1,0 +1,83 @@
+/**
+ * @OnlyCurrentDoc
+ */
+
+function onOpen(e) {
+  DocumentApp.getUi().createAddonMenu()
+      .addItem('start', 'showSidebar')
+      .addToUi();
+}
+
+/**
+ * Runs when the add-on is installed.
+ * This method is only used by the regular add-on, and is never called by
+ * the mobile add-on version.
+ *
+ * @param {object} e The event parameter for a simple onInstall trigger. To
+ *     determine which authorization mode (ScriptApp.AuthMode) the trigger is
+ *     running in, inspect e.authMode. (In practice, onInstall triggers always
+ *     run in AuthMode.FULL, but onOpen triggers may be AuthMode.LIMITED or
+ *     AuthMode.NONE.)
+ */
+function onInstall(e) {
+  onOpen(e);
+}
+
+function showSidebar() {
+  var htmlOutput = HtmlService.createHtmlOutputFromFile('sidebar')
+    .setWidth(300)
+    .setTitle('Dewey Recommender');
+
+  var sidebarInstance = DocumentApp.getUi().showSidebar(htmlOutput);
+}
+
+function displayBooksInSidebar() {
+  var para = getParagraphText();
+  var full = getFullText();
+  return sendGetRequest(full, para);
+}
+
+function getParagraphText() {
+  var document = DocumentApp.getActiveDocument();
+  var cursor = document.getCursor();
+  
+  if (cursor) {
+    var element = cursor.getSurroundingText();
+    
+    if (element && element.getType() === DocumentApp.ElementType.PARAGRAPH) {
+      var paragraphText = element.getText();
+      return paragraphText;
+    }
+  }
+  
+  return "No paragraph selected.";
+}
+
+function getFullText() {
+  var document = DocumentApp.getActiveDocument();
+  var body = document.getBody();
+  var text = body.getText();
+  return text;
+}
+
+
+function sendGetRequest(bodyText, paragraphText) {
+  var url = "https://a188f0a6-ee05-422d-bc26-a7ab30eba45d.mock.pstmn.io/reinforcing";
+
+  // Build the query parameters
+  var queryParams = [
+    // "content=" + encodeURIComponent(bodyText),
+    "paragraph=" + encodeURIComponent(paragraphText)
+  ].join("&");
+
+  // Construct the complete URL with query parameters
+  var completeUrl = url + "?" + queryParams;
+
+  // Send the GET request
+  var response = UrlFetchApp.fetch(completeUrl);
+
+  // Parse and log the response
+  var responseJson = JSON.parse(response.getContentText());
+  return responseJson;
+}
+

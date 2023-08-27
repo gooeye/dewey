@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" href="path/to/font-awesome/css/font-awesome.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@3.6.2/dist/full.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <base target="_top">
+  </head>
+  <body class="bg-neutral min-h-min h-screen">
+    <div id="start-screen" class="hero-content text-center text-slate-400">
+      <div class="max-w-md">
+        <h1 class="text-3xl font-bold text-slate-100">Want some help?</h1>
+        <p class="py-6">Place your cursor somewhere to get related ideas!</p>
+        <button id="run" class="btn btn-primary">Ideate!</button>
+      </div>
+    </div>
+    <div id="header" class="inset-x-0 top-0 text-center w-full pt-3">
+    </div>
+    <div id="book-list" class="bg-neutral w-full h-full flex flex-col"></div>
+    <div id="footer" class="fixed inset-x-0 bottom-0 text-center w-full bg-gradient-to-t from-slate-500 pb-3"></div>
+    <script>
+      function onDisplayButtonClick() {
+        var startScreen = document.getElementById("start-screen");
+        if (startScreen.style.display != "none") {
+          startScreen.style.display = "none";
+          populateUI();
+        }
+        document.getElementById("footer").innerHTML = "";
+        var bookList = document.getElementById("book-list");
+        bookList.classList.add("text-center");
+        bookList.innerHTML="<span class='loading loading-ring loading-lg text-primary m-auto'></span>";
+
+        google.script.run.withSuccessHandler(updateBookList).displayBooksInSidebar();
+      }
+      
+      document.getElementById('run').addEventListener('click', onDisplayButtonClick);
+      function updateBookList(results) {
+        var buttonItem = document.createElement("button");
+        buttonItem.classList.add("btn", "btn-primary");
+        buttonItem.innerHTML = "Ideate!";
+        buttonItem.addEventListener('click', onDisplayButtonClick);
+        document.getElementById("footer").appendChild(buttonItem);
+        // book = [{Title: [link:link, desc: desc, date:date, author: author]}]
+        var bookList = document.getElementById("book-list");
+        bookList.innerHTML = "<div id='list0' class='m-3'></div><div id='list1' class='m-3'></div><div id='list2' class='m-3'></div>"; // Clear existing content
+        bookList.classList.remove("text-center");
+        for (var i = 0; i < results.length; i++) {
+          listId = "list";
+          listId += i.toString();
+          var list=document.getElementById(listId);
+          if (i) list.style.display = "none";
+          for (var j = 0; j < results[i].length; j++) {
+            var checked = "checked";
+            if (j) checked = "";
+            var book = results[i][j];
+            list.innerHTML+="<div tabindex='0' class='collapse collapse-arrow border border-base-300 bg-base-200 text-slate-100'><div class='collapse-title text-base font-medium'><a href='"+book.url+"' target='_blank'>"+book.title+"<a/></div><div class='collapse-content'><p>"+book.relevance+"</p></div></div>";
+            // var listItem = document.createElement("div"); 
+            // listItem.classList.add("collapse", "collapse-plus", "bg-base-200", "text-slate-100", "book");
+            // listItem.innerHTML = "<input type='radio' name='my-accordion' checked='" + checked + "'/><div class='collapse-title text-xl font-medium'>" + book.title + "</div></label><div class='collapse-content'><p>" + book.description + "</p></div>";
+            // bookList.appendChild(listItem);
+          }
+        }
+      }
+
+      function populateUI() {
+        var header = document.getElementById("header");
+        header.innerHTML="<div class='join'><button class='btn join-item' id='gen1'>Refute</button><button class='btn join-item' id='gen2'>Explore</button><button class='btn join-item' id='gen3'>Reinforce</button></div>";
+        document.getElementById('gen1').addEventListener('click', showResults);
+        document.getElementById('gen2').addEventListener('click', showResults1);
+        document.getElementById('gen3').addEventListener('click', showResults2);
+      }
+
+      function showResults() {
+          document.getElementById("list0").style.display = "block";
+          document.getElementById("list1").style.display = "none";
+          document.getElementById("list2").style.display = "none";
+      }
+      function showResults1() {
+          document.getElementById("list0").style.display = "none";
+          document.getElementById("list1").style.display = "block";
+          document.getElementById("list2").style.display = "none";
+      }
+      function showResults2() {
+          document.getElementById("list0").style.display = "none";
+          document.getElementById("list1").style.display = "none";
+          document.getElementById("list2").style.display = "block";
+      }
+  </script>
+  </body>
+</html>
